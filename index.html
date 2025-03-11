@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .voice-selector {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .voice-selector:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .voice-selector option {
+            background: #764ba2;
+            color: #fff;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status.active {
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .heart {
+            color: #ff6b6b;
+            display: inline-block;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            5% { transform: scale(1.2); }
+            10% { transform: scale(1); }
+            15% { transform: scale(1.2); }
+            20% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+            
+            textarea {
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Text to Speech</h1>
+        <p class="subtitle">Convert your text to speech with a click</p>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="form-group">
+                <label for="text-input">Enter your text</label>
+                <textarea id="text-input" placeholder="Type something here..."></textarea>
+            </div>
+            
+            <div class="controls">
+                <select id="voice-select" class="voice-selector">
+                    <option value="">Default Voice</option>
+                </select>
+                
+                <button id="speak-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    Speak
+                </button>
+                
+                <button id="stop-btn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect>
+                    </svg>
+                    Stop
+                </button>
+            </div>
+            
+            <div id="status" class="status">Ready to speak</div>
+        </div>
+    </main>
+
+    <footer>
+        Made with <span class="heart">❤️</span> by RRS | Powered by us
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textInput = document.getElementById('text-input');
+            const voiceSelect = document.getElementById('voice-select');
+            const speakBtn = document.getElementById('speak-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const status = document.getElementById('status');
+            
+            let speechSynthesis = window.speechSynthesis;
+            let voices = [];
+            let currentUtterance = null;
+            
+            // Check if browser supports speech synthesis
+            if (!speechSynthesis) {
+                status.textContent = 'Speech synthesis not supported in your browser';
+                status.classList.add('active');
+                speakBtn.disabled = true;
+                return;
+            }
+            
+            // Function to populate voice options
+            function loadVoices() {
+                voices = speechSynthesis.getVoices();
+                
+                // Clear existing options
+                voiceSelect.innerHTML = '<option value="">Default Voice</option>';
+                
+                voices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    voiceSelect.appendChild(option);
+                });
+            }
+            
+            // Chrome loads voices asynchronously
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            
+            // Initial load of voices
+            loadVoices();
+            
+            // Speak function
+            function speak() {
+                const text = textInput.value.trim();
+                
+                if (!text) {
+                    showStatus('Please enter some text to speak', true);
+                    return;
+                }
+                
+                // Cancel any ongoing speech
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                }
+                
+                currentUtterance = new SpeechSynthesisUtterance(text);
+                
+                // Set selected voice
+                const selectedVoice = voiceSelect.value;
+                if (selectedVoice !== '') {
+                    currentUtterance.voice = voices[selectedVoice];
+                }
+                
+                // Events
+                currentUtterance.onstart = () => {
+                    showStatus('Speaking...', false);
+                    speakBtn.disabled = true;
+                    stopBtn.disabled = false;
+                };
+                
+                currentUtterance.onend = () => {
+                    showStatus('Finished speaking', false);
+                    speakBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    setTimeout(() => {
+                        status.classList.remove('active');
+                    }, 2000);
+                };
+                
+                currentUtterance.onerror = (event) => {
+                    showStatus(`Error occurred: ${event.error}`, true);
+                    speakBtn.disabled = false;
+                    stopBtn.disabled = true;
+                };
+                
+                // Speak
+                speechSynthesis.speak(currentUtterance);
+            }
+            
+            // Stop speaking
+            function stopSpeaking() {
+                if (speechSynthesis.speaking) {
+                    speechSynthesis.cancel();
+                    showStatus('Speech stopped', false);
+                    speakBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }
+            }
+            
+            // Show status message
+            function showStatus(message, isError) {
+                status.textContent = message;
+                status.classList.add('active');
+                
+                if (isError) {
+                    status.style.background = 'rgba(255, 0, 0, 0.2)';
+                } else {
+                    status.style.background = 'rgba(0, 0, 0, 0.1)';
+                }
+            }
+            
+            // Event listeners
+            speakBtn.addEventListener('click', speak);
+            stopBtn.addEventListener('click', stopSpeaking);
+            
+            // Keyboard shortcut
+            textInput.addEventListener('keydown', (e) => {
+                // Ctrl+Enter to speak
+                if (e.ctrlKey && e.key === 'Enter') {
+                    speak();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
